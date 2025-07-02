@@ -8,111 +8,106 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <style>
-        .score-counter {
-            font-size: 3rem;
-            font-weight: bold;
-            color: #10B981;
-            text-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
-        }
-
-        #mapSelector {
-            background-color: rgba(0, 0, 0, 0.8);
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-
-        .hidden {
-            display: none !important;
-            /* Pastikan modal benar-benar hilang */
-        }
-    </style>
 </head>
 
-<body class="bg-gray-900 text-white font-sans min-h-screen relative p-4">
+<body class="bg-gray-900 text-white font-sans min-h-screen relative p-4 sm:p-6 md:p-8">
     <!-- Map Selector Modal -->
-    <div id="mapSelector">
-        <div class="bg-gray-800 p-6 rounded-lg shadow-lg text-center">
-            <h2 class="text-2xl font-bold mb-4">Pilih Peta</h2>
+    <div id="mapSelector"
+        class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 transition-opacity duration-300">
+        <div class="bg-gray-800 p-6 sm:p-8 rounded-xl shadow-2xl text-center w-full max-w-md mx-4">
+            <h2 class="text-2xl sm:text-3xl font-bold mb-6 text-emerald-400">Pilih Peta</h2>
             <div class="grid grid-cols-2 gap-4">
                 <button id="bermudaButton"
-                    class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded transition">
+                    class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition duration-200">
                     Bermuda
                 </button>
-                <button id="purgatoryButton" disabled
-                    class="px-6 py-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-400 cursor-not-allowed text-white font-semibold rounded transition">
+                <button id="purgatoryButton"
+                    class="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-500 text-white font-semibold rounded-lg transition duration-200">
                     Purgatory
                 </button>
                 <button id="kalahariButton" disabled
-                    class="px-6 py-2 bg-yellow-600 hover:bg-yellow-700 disabled:bg-gray-400 cursor-not-allowed text-white font-semibold rounded transition">
+                    class="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 disabled:bg-gray-500 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition duration-200">
                     Kalahari
                 </button>
                 <button id="alpineButton" disabled
-                    class="px-6 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 cursor-not-allowed text-white font-semibold rounded transition">
+                    class="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-500 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition duration-200">
                     Alpine
                 </button>
                 <button id="nexterraButton" disabled
-                    class="px-6 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 cursor-not-allowed text-white font-semibold rounded transition">
+                    class="px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-500 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition duration-200">
                     Nexterra
                 </button>
                 <button id="solaraButton" disabled
-                    class="px-6 py-2 bg-orange-600 hover:bg-orange-700 disabled:bg-gray-400 cursor-not-allowed text-white font-semibold rounded transition">
+                    class="px-4 py-2 bg-orange-600 hover:bg-orange-700 disabled:bg-gray-500 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition duration-200">
                     Solara
                 </button>
             </div>
         </div>
     </div>
 
-    <h1 id="gameTitle" class="text-3xl font-bold mb-4 text-center">🎯 GeoGuessr Free Fire</h1>
+    <!-- Clue Image Modal -->
+    <div id="clueModal"
+        class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 hidden transition-opacity duration-300">
+        <div class="relative w-full max-w-3xl mx-4">
+            <img id="clueModalImage" src="" alt="Clue" class="w-full h-auto rounded-lg shadow-lg" />
+            <button id="closeClueModal"
+                class="absolute top-2 right-2 bg-red-600 hover:bg-red-700 text-white rounded-full p-2 transition duration-200">
+                ✕
+            </button>
+        </div>
+    </div>
 
-    <!-- Clue Gambar -->
-    <div class="mb-4 flex justify-center">
-        <img id="clueImage" src="" alt="Clue"
-            class="w-full max-w-4xl h-auto object-cover rounded shadow-lg border-2 border-white" />
+    <h1 id="gameTitle" class="text-2xl sm:text-3xl md:text-4xl font-bold mb-6 text-center text-emerald-400">🎯 GeoGuessr
+        Free Fire</h1>
+
+    <!-- Clue Image -->
+    <div class="mb-6 flex justify-center">
+        <div class="relative w-full max-w-3xl">
+            <img id="clueImage" src="" alt="Clue"
+                class="w-full h-auto object-cover rounded-lg shadow-lg border-2 border-gray-700 transition-transform duration-200 hover:scale-105" />
+            <button id="zoomClueButton"
+                class="absolute bottom-2 right-2 bg-blue-600 hover:bg-blue-700 text-white rounded-full p-2 text-sm font-semibold transition duration-200">
+                Zoom
+            </button>
+        </div>
     </div>
 
     <!-- Map -->
-    <div id="map" class="absolute bottom-4 right-4 w-[350px] h-[350px] rounded-lg shadow-lg border-2 border-white z-10">
+    <div id="map"
+        class="absolute bottom-4 right-4 w-[300px] h-[300px] sm:w-[350px] sm:h-[350px] md:w-[400px] md:h-[400px] rounded-lg shadow-lg border-2 border-gray-700 z-10">
     </div>
 
-    <!-- Info dan Kontrol -->
-    <div class="mt-6 text-center">
-        <p id="distanceDisplay" class="text-lg font-medium"></p>
-        <p id="scoreDisplay" class="text-xl font-bold mt-1"></p>
-        <p id="roundDisplay" class="text-sm text-gray-300 mt-1"></p>
+    <!-- Info and Controls -->
+    <div class="mt-6 text-center max-w-md mx-auto">
+        <p id="distanceDisplay" class="text-base sm:text-lg font-medium text-gray-300"></p>
+        <p id="scoreDisplay" class="text-lg sm:text-xl font-bold mt-2 text-emerald-400"></p>
+        <p id="roundDisplay" class="text-sm sm:text-base text-gray-400 mt-2"></p>
 
-        <!-- Kontainer untuk skor akhir -->
+        <!-- Final Score Container -->
         <div id="finalScoreContainer" class="hidden flex flex-col items-center mt-6">
-            <h2 class="text-2xl font-bold mb-4">Permainan Selesai!</h2>
-            <p class="text-lg">Total Skor Anda: <span id="finalScore" class="score-counter">0</span></p>
+            <h2 class="text-xl sm:text-2xl font-bold mb-4 text-emerald-400">Permainan Selesai!</h2>
+            <p class="text-base sm:text-lg">Total Skor Anda: <span id="finalScore"
+                    class="text-3xl sm:text-4xl font-bold text-emerald-400">0</span></p>
         </div>
 
-        <button id="submitButton"
-            class="mt-4 px-6 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded transition hidden">
-            Submit Tebakan
-        </button>
-
-        <button id="nextButton"
-            class="mt-4 px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded transition hidden">
-            Next Round
-        </button>
-
-        <button id="finishButton"
-            class="mt-4 px-6 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded transition hidden">
-            Selesai
-        </button>
-
-        <button id="playAgainButton"
-            class="mt-4 px-6 py-2 bg-yellow-600 hover:bg-yellow-700 text-white font-semibold rounded transition hidden">
-            Main Lagi
-        </button>
+        <div class="mt-4 flex flex-col sm:flex-row justify-center gap-4">
+            <button id="submitButton"
+                class="px-6 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition duration-200 hidden">
+                Submit Tebakan
+            </button>
+            <button id="nextButton"
+                class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition duration-200 hidden">
+                Next Round
+            </button>
+            <button id="finishButton"
+                class="px-6 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition duration-200 hidden">
+                Selesai
+            </button>
+            <button id="playAgainButton"
+                class="px-6 py-2 bg-yellow-600 hover:bg-yellow-800 text-white font-semibold rounded-lg transition duration-200 hidden">
+                Main Lagi
+            </button>
+        </div>
     </div>
 
     <script>
@@ -120,7 +115,7 @@
             crs: L.CRS.Simple,
             minZoom: -1,
             maxZoom: 4,
-            zoomControl: false,
+            zoomControl: true,
             attributionControl: false,
         });
 
@@ -129,7 +124,7 @@
         const maps = {
             bermuda: {
                 image: 'images/bermuda-map.jpg',
-                title: 'GeoGuessr Free Fire: Bermuda Map',
+                title: '🎯 GeoGuessr Free Fire: Bermuda Map',
                 locations: [
                     { image: 'images/clues/bermuda/clue1.png', latlng: [258.8000030517578, 612.1999988555908] },
                     { image: 'images/clues/bermuda/clue2.png', latlng: [403.6500015258789, 260.8499994277954] },
@@ -140,13 +135,13 @@
             },
             purgatory: {
                 image: 'images/purgatory-map.jpg',
-                title: 'GeoGuessr Free Fire: Purgatory Map',
+                title: '🎯 GeoGuessr Free Fire: Purgatory Map',
                 locations: [
-                    { image: 'images/clues/purgatory/clue1.png', latlng: [200, 200] },
-                    { image: 'images/clues/purgatory/clue2.png', latlng: [400, 400] },
-                    { image: 'images/clues/purgatory/clue3.png', latlng: [600, 600] },
-                    { image: 'images/clues/purgatory/clue4.png', latlng: [800, 800] },
-                    { image: 'images/clues/purgatory/clue5.png', latlng: [300, 700] }
+                    { image: 'images/clues/purgatory/clue1.png', latlng: [333.6000061035156, 916] },
+                    { image: 'images/clues/purgatory/clue2.png', latlng: [454.6000061035156, 653] },
+                    { image: 'images/clues/purgatory/clue3.png', latlng: [880.6000061035156, 302] },
+                    { image: 'images/clues/purgatory/clue4.png', latlng: [632.6000061035156, 288] },
+                    { image: 'images/clues/purgatory/clue5.png', latlng: [195.8000030517578, 338.5] }
                 ]
             }
         };
@@ -162,6 +157,10 @@
         let isAnswered = false;
 
         const clueImage = document.getElementById('clueImage');
+        const clueModal = document.getElementById('clueModal');
+        const clueModalImage = document.getElementById('clueModalImage');
+        const zoomClueButton = document.getElementById('zoomClueButton');
+        const closeClueModal = document.getElementById('closeClueModal');
         const distanceDisplay = document.getElementById('distanceDisplay');
         const scoreDisplay = document.getElementById('scoreDisplay');
         const roundDisplay = document.getElementById('roundDisplay');
@@ -203,14 +202,14 @@
             currentMap = maps[mapKey];
             locations = shuffleArray([...currentMap.locations]);
             gameTitle.textContent = currentMap.title;
-            mapSelector.classList.add('hidden'); // Sembunyikan modal
-            map.eachLayer(layer => map.removeLayer(layer)); // Clear previous map layers
+            mapSelector.classList.add('hidden');
+            map.eachLayer(layer => map.removeLayer(layer));
             L.imageOverlay(currentMap.image, bounds).addTo(map);
             map.setMaxBounds(bounds);
             map.fitBounds(bounds);
             currentRound = 0;
             totalScore = 0;
-            clueImage.classList.remove('hidden'); // Pastikan clue terlihat
+            clueImage.classList.remove('hidden');
             startRound();
         }
 
@@ -221,7 +220,8 @@
 
             const loc = locations[currentRound];
             clueImage.src = loc.image;
-            clueImage.classList.remove('hidden'); // Pastikan clue terlihat
+            clueModalImage.src = loc.image;
+            clueImage.classList.remove('hidden');
             roundDisplay.textContent = `Round ${currentRound + 1} of ${locations.length}`;
             distanceDisplay.textContent = '';
             scoreDisplay.textContent = '';
@@ -252,23 +252,37 @@
             finishButton.classList.remove('hidden');
             playAgainButton.classList.remove('hidden');
             nextButton.classList.add('hidden');
-            clueImage.classList.add('hidden'); // Sembunyikan clue saat skor akhir
+            clueImage.classList.add('hidden');
+        }
+
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.className = 'fixed top-4 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-4 py-2 rounded-lg shadow-lg z-50';
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            setTimeout(() => {
+                notification.classList.add('opacity-0');
+                setTimeout(() => notification.remove(), 300);
+            }, 2000);
         }
 
         function finishRound() {
-            if (!currentGuess || isAnswered) return;
+            if (!currentGuess || isAnswered) {
+                showNotification('Silakan pilih lokasi di peta terlebih dahulu!');
+                return;
+            }
 
             const correctLatLng = locations[currentRound].latlng;
 
             answerMarker = L.marker(correctLatLng, {
                 icon: L.icon({
-                    iconUrl: 'https://cdn-icons-png.flaticon.com/512/684/684908.png',
-                    iconSize: [25, 41],
-                    iconAnchor: [12, 41]
+                    iconUrl: 'images/marker/answer.png',
+                    iconSize: [35, 35],
+                    iconAnchor: [12, 12]
                 })
             }).addTo(map);
 
-            line = L.polyline([currentGuess, correctLatLng], { color: 'deepskyblue' }).addTo(map);
+            line = L.polyline([currentGuess, correctLatLng], { color: 'deepskyblue', weight: 3 }).addTo(map);
 
             const distance = Math.sqrt(
                 Math.pow(currentGuess[0] - correctLatLng[0], 2) +
@@ -278,11 +292,11 @@
             const maxDistance = 1000;
             const normalizedDistance = distance / maxDistance;
             const score = distance <= 20 ? 5000 : Math.max(0, Math.floor(5000 * (1 - normalizedDistance)));
-            const roundedDistance = Math.floor(distance);
             totalScore += score;
 
-            distanceDisplay.textContent = `Jarak tebakanmu: ${roundedDistance} m`;
+            distanceDisplay.textContent = `Jarak tebakanmu: ${Math.floor(distance)} m`;
             scoreDisplay.textContent = `Skor Ronde: ${score} | Total: ${totalScore}`;
+            showNotification(`Skor Ronde: ${score}`);
 
             submitButton.classList.add('hidden');
             if (currentRound + 1 >= locations.length) {
@@ -292,20 +306,35 @@
             }
 
             isAnswered = true;
+            map.fitBounds([currentGuess, correctLatLng], { padding: [50, 50] });
         }
 
         map.on('click', function (e) {
             if (isAnswered) return;
-            console.log(e.latlng);
 
             if (guessMarker) {
                 map.removeLayer(guessMarker);
             }
 
             currentGuess = [e.latlng.lat, e.latlng.lng];
-            guessMarker = L.marker(currentGuess).addTo(map);
+            guessMarker = L.marker(currentGuess, {
+                icon: L.icon({
+                    iconUrl: 'images/marker/guess.png',
+                    iconSize: [25, 25],
+                    iconAnchor: [12, 12]
+                })
+            }).addTo(map);
 
             submitButton.classList.remove('hidden');
+            showNotification('Tebakan ditempatkan! Klik Submit untuk lanjut.');
+        });
+
+        zoomClueButton.addEventListener('click', () => {
+            clueModal.classList.remove('hidden');
+        });
+
+        closeClueModal.addEventListener('click', () => {
+            clueModal.classList.add('hidden');
         });
 
         submitButton.addEventListener('click', finishRound);
@@ -327,11 +356,14 @@
             mapSelector.classList.remove('hidden');
             currentRound = 0;
             totalScore = 0;
-            clueImage.classList.add('hidden'); // Sembunyikan clue saat kembali ke pemilihan peta
+            clueImage.classList.add('hidden');
         });
 
         bermudaButton.addEventListener('click', () => startGame('bermuda'));
         purgatoryButton.addEventListener('click', () => startGame('purgatory'));
+
+        // Initialize with a notification
+        showNotification('Pilih peta untuk memulai permainan!');
     </script>
 </body>
 

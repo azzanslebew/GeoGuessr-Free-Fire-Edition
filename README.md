@@ -1,15 +1,14 @@
-
-# 🎮 GeoGuessr Free Fire Edition v1.0 
+# 🎮 GeoGuessr Free Fire Edition v1.1 
 
 Welcome to GeoGuessr Free Fire - a single-player offline game where you test your knowledge of Free Fire maps! 🗺️
 
 ## 🌎 Available Maps
-Currently in v1.0:
+Currently in v1.1:
 - Bermuda 🏝️
+- Purgatory 🌋
 
 Coming soon in future updates:
 - Kalahari 🏜️
-- Purgatory 🌋
 - Nexterra 🌿
 - Alpine ⛰️
 - Solara ☀️
@@ -23,7 +22,7 @@ Coming soon in future updates:
 
 ## 🚀 How to Play
 1. Start the game
-2. You'll be placed somewhere in Bermuda map
+2. You'll be placed somewhere in Bermuda or Purgatory map
 3. Look around the environment for clues
 4. Make your best guess on the map
 5. See how close you were to the actual location!
