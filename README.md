@@ -32,12 +32,12 @@ Stay tuned for more maps and features in upcoming versions!
 
 ## 💭 Feedback
 Your feedback is valuable! If you have suggestions or found any issues, please contact me:
-- Email: [azzanishamkds@gmail.com]
-- Discord: [azzanebew]
-- Tiktok: [senpaiifinger]
+- Email: azzanishamkds@gmail.com
+- Discord: azzanebew
+- Tiktok: @senpaiifinger
 
 ## 👨‍💻 Developer
-Created with ❤️ by [your-name]
+Created with ❤️ by me...
 
 ---
 © 2025 GeoGuessr Free Fire Edition. All rights reserved.
