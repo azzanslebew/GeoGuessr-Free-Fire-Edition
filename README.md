@@ -32,9 +32,10 @@ Stay tuned for more maps and features in upcoming versions!
 
 ## 💭 Feedback
 Your feedback is valuable! If you have suggestions or found any issues, please contact me:
-- Email: azzanishamkds@gmail.com
-- Discord: azzanebew
-- Tiktok: @senpaiifinger
+- **Name**: Azzan Isham Alawiy  
+- **Email**: azzanishamkds@gmail.com  
+- **LinkedIn**: [@azzanisham](https://linkedin.com/in/azzan-isham-480614258)  
+- **GitHub**: [@azzanslebew](https://github.com/azzanslebew)
 
 ## 👨‍💻 Developer
 Created with ❤️ by me...
