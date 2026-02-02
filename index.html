@@ -3,41 +3,127 @@
 
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>GeoGuessr FF - Duel Mode</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <style>
+    /* Animasi Bar HP */
+    .hp-fill {
+      transition: width 0.5s ease-in-out, background-color 0.3s;
+    }
+
+    /* Map Hover Effect ala GeoGuessr */
+    #map-container {
+      transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+      opacity: 0.9;
+    }
+
+    #map-container:hover,
+    #map-container.active {
+      width: 90vw;
+      height: 80vh;
+      /* Membesar hampir layar penuh saat hover */
+      opacity: 1;
+      z-index: 40;
+    }
+
+    /* Saat mode mobile, map behavior beda dikit */
+    @media (min-width: 640px) {
+
+      #map-container:hover,
+      #map-container.active {
+        width: 600px;
+        height: 500px;
+      }
+    }
+
+    .leaflet-popup-content-wrapper {
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      border-radius: 8px;
+    }
+
+    .leaflet-popup-tip {
+      background: rgba(0, 0, 0, 0.8);
+    }
+
+    /* Keyframes untuk damage */
+    @keyframes shake {
+      0% {
+        transform: translate(1px, 1px) rotate(0deg);
+      }
+
+      10% {
+        transform: translate(-1px, -2px) rotate(-1deg);
+      }
+
+      20% {
+        transform: translate(-3px, 0px) rotate(1deg);
+      }
+
+      30% {
+        transform: translate(3px, 2px) rotate(0deg);
+      }
+
+      40% {
+        transform: translate(1px, -1px) rotate(1deg);
+      }
+
+      50% {
+        transform: translate(-1px, 2px) rotate(-1deg);
+      }
+
+      60% {
+        transform: translate(-3px, 1px) rotate(0deg);
+      }
+
+      70% {
+        transform: translate(3px, 1px) rotate(-1deg);
+      }
+
+      80% {
+        transform: translate(-1px, -1px) rotate(1deg);
+      }
+
+      90% {
+        transform: translate(1px, 2px) rotate(0deg);
+      }
+
+      100% {
+        transform: translate(1px, -2px) rotate(-1deg);
+      }
+    }
+
+    .shake-anim {
+      animation: shake 0.5s;
+    }
+  </style>
 </head>
 
-<body class="bg-gray-900 text-white font-sans min-h-screen relative p-4 sm:p-6 overflow-x-hidden">
+<body class="bg-gray-900 text-white font-sans h-screen w-screen overflow-hidden select-none">
 
   <div id="loginScreen" class="fixed inset-0 bg-gray-900 z-[60] flex flex-col items-center justify-center p-4">
-    <h1 class="text-4xl font-bold text-emerald-400 mb-8">GeoGuessr FF</h1>
-    <div class="bg-gray-800 p-8 rounded-xl w-full max-w-md shadow-2xl border border-gray-700">
-      <label class="block text-gray-400 mb-2">Nickname</label>
-      <input type="text" id="usernameInput" placeholder="Masukkan nama..."
-        class="w-full p-3 rounded bg-gray-700 text-white mb-6 border border-gray-600 focus:border-emerald-500 outline-none">
+    <div class="bg-gray-800 p-8 rounded-2xl w-full max-w-md shadow-2xl border border-gray-700 text-center">
+      <h1 class="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-500 mb-2">
+        GeoGuessr FF</h1>
+      <p class="text-gray-400 mb-8">Battle Royale Edition</p>
+
+      <input type="text" id="usernameInput" placeholder="Masukkan Nickname"
+        class="w-full p-4 rounded-xl bg-gray-700 text-white text-lg font-bold mb-6 border-2 border-gray-600 focus:border-emerald-500 outline-none text-center placeholder-gray-500 transition-all">
+
       <div class="space-y-3">
-        <button onclick="window.startSinglePlayer()"
-          class="w-full py-3 bg-blue-600 hover:bg-blue-700 rounded-lg font-bold transition">
-          👤 Single Player
-        </button>
-        <div class="relative flex py-2 items-center">
-          <div class="flex-grow border-t border-gray-600"></div>
-          <span class="flex-shrink-0 mx-4 text-gray-400">Duel Mode</span>
-          <div class="flex-grow border-t border-gray-600"></div>
-        </div>
         <button onclick="window.createRoom()"
-          class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 rounded-lg font-bold transition">
-          ⚔️ Buat Room (Host)
+          class="w-full py-4 bg-emerald-600 hover:bg-emerald-500 rounded-xl font-black text-lg shadow-lg hover:shadow-emerald-500/20 transition-all transform hover:-translate-y-1">
+          HOST NEW GAME
         </button>
         <div class="flex gap-2">
-          <input type="text" id="roomCodeInput" placeholder="Kode Room"
-            class="flex-1 p-3 rounded bg-gray-700 border border-gray-600 uppercase">
+          <input type="text" id="roomCodeInput" placeholder="CODE"
+            class="w-1/3 p-4 rounded-xl bg-gray-700 border-2 border-gray-600 text-center font-mono uppercase font-bold">
           <button onclick="window.joinRoom()"
-            class="px-6 py-3 bg-purple-600 hover:bg-purple-700 rounded-lg font-bold transition">
-            Join
+            class="flex-1 py-4 bg-blue-600 hover:bg-blue-500 rounded-xl font-black text-lg shadow-lg hover:shadow-blue-500/20 transition-all transform hover:-translate-y-1">
+            JOIN GAME
           </button>
         </div>
       </div>
@@ -45,98 +131,155 @@
   </div>
 
   <div id="lobbyScreen" class="fixed inset-0 bg-gray-900 z-[55] flex flex-col items-center justify-center hidden">
-    <div class="bg-gray-800 p-8 rounded-xl text-center shadow-2xl max-w-md w-full">
-      <h2 class="text-2xl font-bold text-emerald-400 mb-2">Lobby Room</h2>
-      <div class="bg-black bg-opacity-30 p-4 rounded mb-6">
-        <p class="text-gray-400 text-sm">Kode Room:</p>
+    <div class="bg-gray-800 p-8 rounded-2xl text-center shadow-2xl max-w-lg w-full border border-gray-700">
+      <h2 class="text-2xl font-bold text-gray-300 mb-4">Lobby</h2>
+      <div class="bg-black/40 p-6 rounded-xl mb-6 border border-gray-600">
+        <p class="text-gray-400 text-sm mb-1">ROOM CODE</p>
         <p id="displayRoomCode"
-          class="text-4xl font-mono font-bold tracking-widest text-white select-all cursor-pointer">---</p>
+          class="text-5xl font-mono font-black tracking-widest text-emerald-400 cursor-pointer hover:text-emerald-300 transition">
+          ---</p>
       </div>
-      <div class="space-y-2 mb-6 text-left">
-        <p>Host: <span id="p1Name" class="text-emerald-400 font-bold">...</span></p>
-        <p>Guest: <span id="p2Name" class="text-purple-400 font-bold">Menunggu...</span></p>
+
+      <div class="flex justify-between items-center bg-gray-700/50 p-4 rounded-xl mb-6">
+        <div class="text-center w-1/2 border-r border-gray-600">
+          <div class="w-12 h-12 bg-blue-500 rounded-full mx-auto mb-2 flex items-center justify-center text-xl">👤</div>
+          <p id="p1Name" class="font-bold text-lg truncate px-2">...</p>
+          <span class="text-xs text-blue-400 font-bold">HOST</span>
+        </div>
+        <div class="text-center w-1/2">
+          <div class="w-12 h-12 bg-red-500 rounded-full mx-auto mb-2 flex items-center justify-center text-xl">👤</div>
+          <p id="p2Name" class="font-bold text-lg truncate px-2 text-gray-500">Waiting...</p>
+          <span class="text-xs text-red-400 font-bold">GUEST</span>
+        </div>
       </div>
-      <p id="lobbyStatus" class="text-yellow-400 animate-pulse mb-4">Menunggu lawan join...</p>
-      <div id="hostMapSelect" class="hidden">
-        <p class="mb-2 text-sm text-gray-300">Pilih Map:</p>
-        <div class="flex gap-2 justify-center">
+
+      <div id="hostMapSelect" class="hidden animate-fade-in">
+        <p class="mb-3 text-sm text-gray-300 font-bold uppercase tracking-wide">Select Map to Start</p>
+        <div class="grid grid-cols-2 gap-3">
           <button onclick="window.selectMapMultiplayer('bermuda')"
-            class="px-4 py-2 bg-blue-600 rounded hover:bg-blue-500">Bermuda</button>
+            class="py-3 bg-gradient-to-r from-blue-600 to-blue-500 rounded-lg font-bold hover:brightness-110">BERMUDA</button>
           <button onclick="window.selectMapMultiplayer('purgatory')"
-            class="px-4 py-2 bg-red-600 rounded hover:bg-red-500">Purgatory</button>
+            class="py-3 bg-gradient-to-r from-red-600 to-red-500 rounded-lg font-bold hover:brightness-110">PURGATORY</button>
+        </div>
+      </div>
+      <p id="lobbyStatus" class="mt-4 text-yellow-400 font-mono text-sm animate-pulse">Waiting for opponent...</p>
+    </div>
+  </div>
+
+  <div id="gameUI" class="hidden w-full h-full relative">
+
+    <div
+      class="absolute top-0 left-0 w-full z-30 p-2 sm:p-4 bg-gradient-to-b from-black/80 to-transparent pointer-events-none">
+      <div class="max-w-5xl mx-auto flex justify-between items-start gap-2 sm:gap-4">
+
+        <div class="flex-1 flex flex-col items-start" id="p1Container">
+          <div class="flex items-center gap-2 mb-1 pl-1">
+            <div
+              class="w-8 h-8 rounded-full bg-blue-600 border-2 border-white flex items-center justify-center font-bold text-xs shadow-lg">
+              P1</div>
+            <span id="uiP1Name" class="font-bold text-shadow text-sm sm:text-base">Player 1</span>
+          </div>
+          <div
+            class="w-full h-4 sm:h-6 bg-gray-800 rounded-full overflow-hidden border border-gray-600 relative shadow-xl">
+            <div id="p1HpBar" class="hp-fill h-full bg-gradient-to-r from-blue-500 to-cyan-400 absolute left-0 top-0"
+              style="width: 100%;"></div>
+            <span id="p1HpText"
+              class="absolute inset-0 flex items-center justify-center text-xs font-bold text-white drop-shadow-md">6000</span>
+          </div>
+        </div>
+
+        <div class="flex flex-col items-center pt-1">
+          <div class="bg-black/60 px-4 py-1 rounded-full border border-gray-600 backdrop-blur-sm mb-1">
+            <span id="uiRound" class="text-xs text-gray-300 font-bold uppercase tracking-wider">Round 1/5</span>
+          </div>
+          <div id="gameTimer"
+            class="w-12 h-12 rounded-full bg-gray-800 border-2 border-white flex items-center justify-center font-black text-xl shadow-lg hidden">
+            15
+          </div>
+        </div>
+
+        <div class="flex-1 flex flex-col items-end" id="p2Container">
+          <div class="flex items-center gap-2 mb-1 pr-1 flex-row-reverse">
+            <div
+              class="w-8 h-8 rounded-full bg-red-600 border-2 border-white flex items-center justify-center font-bold text-xs shadow-lg">
+              P2</div>
+            <span id="uiP2Name" class="font-bold text-shadow text-sm sm:text-base">Player 2</span>
+          </div>
+          <div
+            class="w-full h-4 sm:h-6 bg-gray-800 rounded-full overflow-hidden border border-gray-600 relative shadow-xl">
+            <div id="p2HpBar" class="hp-fill h-full bg-gradient-to-l from-red-500 to-orange-400 absolute right-0 top-0"
+              style="width: 100%;"></div>
+            <span id="p2HpText"
+              class="absolute inset-0 flex items-center justify-center text-xs font-bold text-white drop-shadow-md">6000</span>
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <h1 id="gameTitle" class="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 text-center text-emerald-400 pt-2">🎯
-    GeoGuessr FF</h1>
+    <img id="gameClueImage" src="" class="absolute inset-0 w-full h-full object-cover z-0" alt="Clue" />
 
-  <div id="mpScoreboard"
-    class="hidden max-w-4xl mx-auto mb-4 bg-gray-800 rounded-lg p-2 flex justify-between items-center border border-gray-700">
-    <div class="text-left px-4">
-      <p id="mpP1Name" class="text-xs text-gray-400">Player 1</p>
-      <p id="mpP1Score" class="text-xl font-bold text-emerald-400">0</p>
-      <span id="mpP1Status" class="text-xs bg-gray-700 px-2 py-0.5 rounded hidden">Sudah Menebak</span>
-    </div>
-    <div class="text-center">
-      <p class="text-xs text-gray-500">VS</p>
-      <p id="mpRoundInfo" class="text-sm font-bold">Ronde 1/5</p>
-    </div>
-    <div class="text-right px-4">
-      <p id="mpP2Name" class="text-xs text-gray-400">Player 2</p>
-      <p id="mpP2Score" class="text-xl font-bold text-purple-400">0</p>
-      <span id="mpP2Status" class="text-xs bg-gray-700 px-2 py-0.5 rounded hidden">Sudah Menebak</span>
-    </div>
-  </div>
+    <div id="map-container"
+      class="absolute bottom-4 right-4 w-[200px] h-[150px] sm:w-[320px] sm:h-[240px] bg-gray-900 rounded-xl shadow-2xl z-40 border-4 border-white overflow-visible group">
 
-  <div id="mapSelector" class="hidden fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50">
-    <div class="bg-gray-800 p-6 rounded-xl text-center">
-      <h2 class="text-2xl font-bold mb-4">Pilih Peta (Single Player)</h2>
-      <div class="flex gap-4">
-        <button onclick="window.startSingleGame('bermuda')" class="px-4 py-2 bg-blue-600 rounded">Bermuda</button>
-        <button onclick="window.startSingleGame('purgatory')" class="px-4 py-2 bg-red-600 rounded">Purgatory</button>
+      <div id="map" class="w-full h-full rounded-lg z-10 relative cursor-crosshair"></div>
+
+      <button id="btnGuess" disabled class="absolute -bottom-6 left-1/2 transform -translate-x-1/2 w-[90%] py-3 
+               bg-emerald-500 hover:bg-emerald-400 disabled:bg-gray-600 disabled:cursor-not-allowed
+               text-white font-black text-lg uppercase tracking-widest rounded-full shadow-xl 
+               transition-all duration-200 hover:scale-105 z-50">
+        GUESS
+      </button>
+    </div>
+
+    <div id="waitingOverlay"
+      class="absolute inset-0 bg-black/50 z-30 flex items-center justify-center backdrop-blur-sm hidden">
+      <div class="bg-gray-900/90 p-6 rounded-2xl text-center border border-gray-600 shadow-2xl">
+        <div class="animate-spin text-4xl mb-4">⏳</div>
+        <h3 class="text-2xl font-bold mb-2">Waiting for opponent...</h3>
+        <p class="text-gray-400 text-sm">Timer is ticking!</p>
       </div>
     </div>
-  </div>
 
-  <div class="mb-4 flex justify-center px-0 sm:px-4">
-    <div class="relative w-full max-w-3xl aspect-video bg-gray-800 rounded-lg overflow-hidden border-2 border-gray-700">
-      <img id="clueImage" src="" class="w-full h-full object-cover" />
-      <div id="waitingForOpponentOverlay"
-        class="absolute inset-0 bg-black bg-opacity-70 flex items-center justify-center hidden">
-        <p class="text-white font-bold animate-pulse">Menunggu lawan menebak...</p>
+    <div id="resultOverlay" class="absolute inset-0 bg-black/80 z-50 flex flex-col items-center justify-center hidden">
+      <div class="w-full max-w-4xl mx-auto px-4 text-center">
+        <h2 id="resultTitle"
+          class="text-4xl sm:text-6xl font-black mb-2 text-white drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]">ROUND OVER
+        </h2>
+
+        <div class="flex justify-center gap-8 mb-8 mt-4">
+          <div class="text-center">
+            <p class="text-gray-400 text-xs uppercase font-bold">Your Distance</p>
+            <p id="resDistance" class="text-2xl sm:text-3xl font-bold text-white">0 m</p>
+          </div>
+          <div class="text-center">
+            <p class="text-gray-400 text-xs uppercase font-bold">Damage Dealt</p>
+            <p id="resDamage" class="text-3xl sm:text-4xl font-black text-red-500 animate-bounce">0</p>
+          </div>
+        </div>
+
+        <button id="btnNextRound"
+          class="hidden px-8 py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-full text-lg shadow-lg hover:scale-105 transition-transform">
+          NEXT ROUND →
+        </button>
+        <p id="hostWaitingMsg" class="hidden text-gray-400 italic animate-pulse">Waiting for Host to start next round...
+        </p>
       </div>
     </div>
-  </div>
 
-  <div id="map"
-    class="absolute bottom-4 right-4 w-[200px] h-[200px] sm:w-[300px] sm:h-[300px] md:w-[350px] md:h-[350px] rounded-lg shadow-lg border-2 border-gray-700 z-10 transition-all duration-300 hover:w-[350px] hover:h-[350px] hover:md:w-[450px] hover:md:h-[450px]">
-  </div>
-
-  <div class="mt-2 text-center max-w-md mx-auto relative z-20 pb-10">
-    <p id="distanceDisplay" class="text-lg font-medium text-gray-300 min-h-[1.5rem]"></p>
-    <div id="singlePlayerControls" class="hidden mt-4 flex justify-center gap-4">
-      <button id="spSubmitBtn" class="px-6 py-2 bg-green-600 rounded hidden">Submit</button>
-      <button id="spNextBtn" class="px-6 py-2 bg-blue-600 rounded hidden">Next</button>
-    </div>
-    <div id="multiPlayerControls" class="hidden mt-4 flex justify-center gap-4">
-      <button id="mpSubmitBtn"
-        class="px-6 py-2 bg-green-600 rounded font-bold shadow-lg hover:bg-green-500 transition hidden">LOCK JAWABAN
-        🔒</button>
-      <div id="mpWaitingMsg" class="hidden text-sm text-yellow-400 italic">Menunggu lawan...</div>
-      <button id="mpNextBtn"
-        class="px-6 py-2 bg-blue-600 rounded font-bold shadow-lg hover:bg-blue-500 transition hidden">LANJUT RONDE
-        BERIKUTNYA ▶</button>
+    <div id="gameOverOverlay"
+      class="absolute inset-0 bg-gray-900 z-[60] flex flex-col items-center justify-center hidden">
+      <h1 id="winnerName" class="text-5xl sm:text-7xl font-black text-yellow-400 mb-4 animate-bounce">PLAYER 1 WINS!
+      </h1>
+      <p class="text-gray-400 text-xl mb-8">VICTORY ROYALE</p>
+      <button onclick="location.reload()"
+        class="px-8 py-4 bg-emerald-600 rounded-full font-bold text-xl hover:bg-emerald-500 transition shadow-lg">PLAY
+        AGAIN</button>
     </div>
   </div>
 
   <script type="module">
-    // 1. IMPORT FIREBASE LANGSUNG DI SINI
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    // Saya hapus analytics agar error cookie hilang (tidak pengaruh ke game)
-    import { getDatabase, ref, set, onValue, update, push, child, get }
-      from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getDatabase, ref, set, onValue, update, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
     // --- CONFIG FIREBASE ---
     const firebaseConfig = {
@@ -144,18 +287,14 @@
       authDomain: "geoguessr-free-fire-edition.firebaseapp.com",
       databaseURL: "https://geoguessr-free-fire-edition-default-rtdb.asia-southeast1.firebasedatabase.app",
       projectId: "geoguessr-free-fire-edition",
-      storageBucket: "geoguessr-free-fire-edition.firebasestorage.app",
-      messagingSenderId: "387268765614",
-      appId: "1:387268765614:web:66863a2027a8041144ca3f",
-      measurementId: "G-9ZPZYQ76D2"
+      appId: "1:387268765614:web:66863a2027a8041144ca3f"
     };
 
-    // Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
-    console.log("Firebase Connected Aman!");
 
-    // --- GAME DATA & VARIABLES ---
+    // --- GAME DATA ---
+    const MAX_HP = 6000;
     const maps = {
       bermuda: {
         image: 'images/bermuda-map.jpg',
@@ -181,124 +320,100 @@
       }
     };
 
-    // --- MAP SETUP ---
-    const map = L.map('map', { crs: L.CRS.Simple, minZoom: -1, maxZoom: 3, zoomControl: false });
+    // --- LEAFLET SETUP ---
+    const map = L.map('map', { crs: L.CRS.Simple, minZoom: -1, maxZoom: 3, zoomControl: false, attributionControl: false });
     const bounds = [[0, 0], [1000, 1000]];
     let currentMapLayer = null;
-    let guessMarker, answerMarker, line;
+    let guessMarker, answerMarker, line, oppMarker, oppLine;
 
     // --- STATE ---
-    let mode = 'single';
-    let myName = '';
     let roomId = null;
     let isHost = false;
-    let playerKey = null;
-    let currentLocations = [];
-    let currentRoundIndex = 0;
+    let playerKey = null; // 'p1' or 'p2'
+    let myName = '';
     let myGuess = null;
     let hasLocked = false;
     let lastRoundProcessed = -1;
+    let timerInterval = null;
 
-    // --- DOM ELEMENTS ---
-    const loginScreen = document.getElementById('loginScreen');
-    const lobbyScreen = document.getElementById('lobbyScreen');
-    const mapSelector = document.getElementById('mapSelector');
-    const singleControls = document.getElementById('singlePlayerControls');
-    const multiControls = document.getElementById('multiPlayerControls');
-    const mpScoreboard = document.getElementById('mpScoreboard');
+    // --- UI ELEMENTS ---
+    const el = {
+      login: document.getElementById('loginScreen'),
+      lobby: document.getElementById('lobbyScreen'),
+      game: document.getElementById('gameUI'),
+      mapContainer: document.getElementById('map-container'),
+      btnGuess: document.getElementById('btnGuess'),
+      timer: document.getElementById('gameTimer'),
+      resultOverlay: document.getElementById('resultOverlay'),
+      waitingOverlay: document.getElementById('waitingOverlay'),
+      p1Bar: document.getElementById('p1HpBar'),
+      p2Bar: document.getElementById('p2HpBar'),
+      p1Text: document.getElementById('p1HpText'),
+      p2Text: document.getElementById('p2HpText')
+    };
 
     // --- HELPER FUNCTIONS ---
-    function shuffleArray(array) {
-      return array.sort(() => Math.random() - 0.5);
+    function updateHpUI(p1Hp, p2Hp) {
+      const p1Pct = Math.max(0, (p1Hp / MAX_HP) * 100);
+      const p2Pct = Math.max(0, (p2Hp / MAX_HP) * 100);
+
+      el.p1Bar.style.width = `${p1Pct}%`;
+      el.p2Bar.style.width = `${p2Pct}%`;
+      el.p1Text.innerText = Math.max(0, p1Hp);
+      el.p2Text.innerText = Math.max(0, p2Hp);
+
+      // Color changes based on HP
+      el.p1Bar.className = `hp-fill h-full absolute left-0 top-0 ${p1Pct < 30 ? 'bg-red-600' : 'bg-gradient-to-r from-blue-500 to-cyan-400'}`;
+      el.p2Bar.className = `hp-fill h-full absolute right-0 top-0 ${p2Pct < 30 ? 'bg-red-600' : 'bg-gradient-to-l from-red-500 to-orange-400'}`;
     }
 
-    function resetMapMarkers() {
+    function resetMap() {
       if (guessMarker) map.removeLayer(guessMarker);
       if (answerMarker) map.removeLayer(answerMarker);
+      if (oppMarker) map.removeLayer(oppMarker);
       if (line) map.removeLayer(line);
-      guessMarker = null; answerMarker = null; line = null;
+      if (oppLine) map.removeLayer(oppLine);
+      guessMarker = null; answerMarker = null; line = null; oppMarker = null; oppLine = null;
       myGuess = null;
       hasLocked = false;
-    }
+      el.btnGuess.disabled = true;
+      el.btnGuess.innerText = "GUESS";
+      el.btnGuess.classList.remove('bg-gray-500', 'hover:bg-gray-400');
+      el.btnGuess.classList.add('bg-emerald-500', 'hover:bg-emerald-400');
 
-    function loadMapImage(mapKey) {
-      if (currentMapLayer) map.removeLayer(currentMapLayer);
-      currentMapLayer = L.imageOverlay(maps[mapKey].image, bounds).addTo(map);
+      // Reset Map View
       map.fitBounds(bounds);
+      el.mapContainer.classList.remove('active'); // Shrink map
     }
 
-    // --- MAP INTERACTION ---
+    // --- MAP INTERACTIONS ---
+    // Hover logic handled by CSS, but click expand logic:
+    el.mapContainer.addEventListener('click', () => {
+      if (!hasLocked) el.mapContainer.classList.add('active');
+    });
+
     map.on('click', (e) => {
       if (hasLocked) return;
       if (guessMarker) map.removeLayer(guessMarker);
+
       myGuess = [e.latlng.lat, e.latlng.lng];
-      guessMarker = L.marker(myGuess).addTo(map);
-      if (mode === 'single') {
-        document.getElementById('spSubmitBtn').classList.remove('hidden');
-      } else {
-        document.getElementById('mpSubmitBtn').classList.remove('hidden');
-      }
+
+      // Custom Pin Icon
+      const pinIcon = L.divIcon({
+        className: 'bg-transparent',
+        html: `<div style="transform: translate(-50%, -100%); font-size: 24px;">📍</div>`
+      });
+
+      guessMarker = L.marker(myGuess, { icon: pinIcon }).addTo(map);
+
+      el.btnGuess.disabled = false;
+      el.btnGuess.innerText = "SUBMIT GUESS";
     });
 
-    // --- SINGLE PLAYER LOGIC ---
-    // Note: Kita tempel function ke "window" agar bisa dipanggil dari HTML onclick
-    window.startSinglePlayer = function () {
-      const name = document.getElementById('usernameInput').value;
-      if (!name) return alert("Isi nama dulu!");
-      myName = name;
-      mode = 'single';
-      loginScreen.classList.add('hidden');
-      mapSelector.classList.remove('hidden');
-    }
-
-    window.startSingleGame = function (mapKey) {
-      mapSelector.classList.add('hidden');
-      singleControls.classList.remove('hidden');
-      currentLocations = shuffleArray([...maps[mapKey].locations]);
-      currentRoundIndex = 0;
-      loadMapImage(mapKey);
-      loadSingleRound();
-    }
-
-    function loadSingleRound() {
-      resetMapMarkers();
-      document.getElementById('spSubmitBtn').classList.add('hidden');
-      document.getElementById('spNextBtn').classList.add('hidden');
-      document.getElementById('clueImage').src = currentLocations[currentRoundIndex].image;
-      document.getElementById('distanceDisplay').innerText = `Round ${currentRoundIndex + 1}`;
-    }
-
-    document.getElementById('spSubmitBtn').onclick = () => {
-      hasLocked = true;
-      const correct = currentLocations[currentRoundIndex].latlng;
-      showResult(myGuess, correct);
-      document.getElementById('spSubmitBtn').classList.add('hidden');
-      document.getElementById('spNextBtn').classList.remove('hidden');
-    };
-
-    document.getElementById('spNextBtn').onclick = () => {
-      currentRoundIndex++;
-      if (currentRoundIndex >= currentLocations.length) {
-        alert("Game Selesai!");
-        location.reload();
-      } else {
-        loadSingleRound();
-      }
-    };
-
-    function showResult(guess, correct) {
-      answerMarker = L.marker(correct, { opacity: 0.7 }).addTo(map);
-      line = L.polyline([guess, correct], { color: 'yellow' }).addTo(map);
-      const dist = map.distance(guess, correct);
-      const score = Math.max(0, 5000 - Math.floor(dist * 5));
-      document.getElementById('distanceDisplay').innerText = `Skor: ${score}`;
-      return score;
-    }
-
-    // --- MULTIPLAYER LOGIC ---
+    // --- MULTIPLAYER CORE ---
     window.createRoom = async function () {
       const name = document.getElementById('usernameInput').value;
-      if (!name) return alert("Isi nama dulu!");
+      if (!name) return alert("Please enter nickname!");
 
       roomId = Math.random().toString(36).substring(2, 6).toUpperCase();
       myName = name;
@@ -307,15 +422,12 @@
 
       const initialData = {
         status: 'waiting',
+        timerEnd: 0,
         players: {
-          p1: { name: name, score: 0, guessed: false, lat: 0, lng: 0 },
-          p2: { name: '', score: 0, guessed: false, lat: 0, lng: 0 }
+          p1: { name: name, hp: MAX_HP, score: 0, guessed: false, lat: 0, lng: 0 },
+          p2: { name: '', hp: MAX_HP, score: 0, guessed: false, lat: 0, lng: 0 }
         },
-        game: {
-          map: '',
-          round: 0,
-          locations: []
-        }
+        game: { map: '', round: 0, locations: [] }
       };
 
       await set(ref(db, 'rooms/' + roomId), initialData);
@@ -325,31 +437,29 @@
     window.joinRoom = async function () {
       const name = document.getElementById('usernameInput').value;
       const code = document.getElementById('roomCodeInput').value.toUpperCase();
-      if (!name || !code) return alert("Isi nama dan kode room!");
+      if (!name || !code) return alert("Enter Name & Code!");
 
       const roomRef = ref(db, 'rooms/' + code);
       const snapshot = await get(roomRef);
 
       if (snapshot.exists()) {
         const data = snapshot.val();
-        if (data.status !== 'waiting') return alert("Game sudah mulai atau penuh!");
+        if (data.status !== 'waiting') return alert("Game started/full!");
 
-        await update(roomRef, {
-          "players/p2": { name: name, score: 0, guessed: false, lat: 0, lng: 0 }
-        });
+        await update(roomRef, { "players/p2": { name: name, hp: MAX_HP, score: 0, guessed: false, lat: 0, lng: 0 } });
         roomId = code;
         myName = name;
         isHost = false;
         playerKey = 'p2';
         enterLobby();
       } else {
-        alert("Room tidak ditemukan!");
+        alert("Room not found!");
       }
     }
 
     function enterLobby() {
-      loginScreen.classList.add('hidden');
-      lobbyScreen.classList.remove('hidden');
+      el.login.classList.add('hidden');
+      el.lobby.classList.remove('hidden');
       document.getElementById('displayRoomCode').innerText = roomId;
 
       onValue(ref(db, 'rooms/' + roomId), (snapshot) => {
@@ -357,19 +467,16 @@
         if (!data) return;
 
         document.getElementById('p1Name').innerText = data.players.p1.name;
-        document.getElementById('p2Name').innerText = data.players.p2.name || 'Menunggu...';
+        document.getElementById('p2Name').innerText = data.players.p2.name || 'Waiting...';
 
         if (isHost && data.players.p2.name && data.status === 'waiting') {
-          document.getElementById('lobbyStatus').innerText = "Lawan Masuk! Pilih Map untuk Mulai.";
           document.getElementById('hostMapSelect').classList.remove('hidden');
-        } else if (!isHost && data.status === 'waiting' && data.players.p2.name) {
-          document.getElementById('lobbyStatus').innerText = "Menunggu Host memilih map...";
+          document.getElementById('lobbyStatus').innerText = "Opponent joined! Select Map.";
         }
 
         if (data.status === 'playing') {
-          lobbyScreen.classList.add('hidden');
-          multiControls.classList.remove('hidden');
-          mpScoreboard.classList.remove('hidden');
+          el.lobby.classList.add('hidden');
+          el.game.classList.remove('hidden');
           syncGameState(data);
         }
       });
@@ -383,108 +490,233 @@
         status: 'playing',
         "game/map": mapKey,
         "game/locations": indices,
-        "game/round": 0
+        "game/round": 0,
+        "timerEnd": 0
       });
     }
 
+    // --- GAME LOOP & LOGIC ---
     function syncGameState(data) {
       const p1 = data.players.p1;
       const p2 = data.players.p2;
       const game = data.game;
       const mapKey = game.map;
 
-      if (!currentMapLayer) loadMapImage(mapKey);
-
-      document.getElementById('mpP1Name').innerText = p1.name;
-      document.getElementById('mpP2Name').innerText = p2.name;
-      document.getElementById('mpP1Score').innerText = p1.score;
-      document.getElementById('mpP2Score').innerText = p2.score;
-      document.getElementById('mpRoundInfo').innerText = `Ronde ${game.round + 1}`;
-
-      document.getElementById('mpP1Status').classList.toggle('hidden', !p1.guessed);
-      document.getElementById('mpP2Status').classList.toggle('hidden', !p2.guessed);
-
-      if (game.round !== lastRoundProcessed) {
-        lastRoundProcessed = game.round;
-        resetMapMarkers();
-        const locIndex = game.locations[game.round];
-        const locData = maps[mapKey].locations[locIndex];
-        document.getElementById('clueImage').src = locData.image;
-        document.getElementById('mpSubmitBtn').classList.add('hidden');
-        document.getElementById('mpNextBtn').classList.add('hidden');
-        document.getElementById('waitingForOpponentOverlay').classList.add('hidden');
-        document.getElementById('mpWaitingMsg').classList.add('hidden');
-        map.closePopup();
+      // 1. Setup UI Static Info
+      if (!currentMapLayer) {
+        if (currentMapLayer) map.removeLayer(currentMapLayer);
+        currentMapLayer = L.imageOverlay(maps[mapKey].image, bounds).addTo(map);
+        map.fitBounds(bounds);
+        document.getElementById('uiP1Name').innerText = p1.name;
+        document.getElementById('uiP2Name').innerText = p2.name;
       }
 
-      if (p1.guessed && p2.guessed && !document.getElementById('mpNextBtn').classList.contains('active')) {
-        const locIndex = game.locations[game.round];
-        const correct = maps[mapKey].locations[locIndex].latlng;
+      document.getElementById('uiRound').innerText = `ROUND ${game.round + 1} / 5`;
+      updateHpUI(p1.hp, p2.hp);
 
+      // 2. New Round Detection
+      if (game.round !== lastRoundProcessed) {
+        lastRoundProcessed = game.round;
+        resetMap();
+
+        // Hide Overlays
+        el.resultOverlay.classList.add('hidden');
+        el.waitingOverlay.classList.add('hidden');
+
+        // Update Image
+        const locIndex = game.locations[game.round];
+        const locData = maps[mapKey].locations[locIndex];
+        document.getElementById('gameClueImage').src = locData.image;
+
+        // Reset Timer UI
+        el.timer.classList.add('hidden');
+      }
+
+      // 3. Timer Logic (Countdown 15s)
+      if (data.timerEnd > 0) {
+        const now = Date.now();
+        const left = Math.ceil((data.timerEnd - now) / 1000);
+
+        if (left > 0) {
+          el.timer.classList.remove('hidden');
+          el.timer.innerText = left;
+          el.timer.classList.add('animate-pulse', 'text-red-500');
+        } else {
+          // Time is up! Force Submit if haven't guessed
+          if (!hasLocked) {
+            forceSubmitGuess();
+          }
+        }
+      }
+
+      // 4. End of Round Logic (Both Guessed)
+      if (p1.guessed && p2.guessed) {
+        showRoundResult(data);
+      }
+    }
+
+    // --- GUESSING LOGIC ---
+    el.btnGuess.onclick = () => {
+      if (!myGuess) return;
+      submitGuess(myGuess);
+    };
+
+    function submitGuess(guessLatLng) {
+      hasLocked = true;
+      el.btnGuess.disabled = true;
+      el.btnGuess.innerText = "LOCKED";
+      el.btnGuess.classList.replace('bg-emerald-500', 'bg-gray-500');
+
+      // Show waiting overlay immediately
+      el.waitingOverlay.classList.remove('hidden');
+
+      // Check if I am the first guesser
+      get(ref(db, `rooms/${roomId}`)).then(snap => {
+        const data = snap.val();
+        const isFirst = (playerKey === 'p1' && !data.players.p2.guessed) || (playerKey === 'p2' && !data.players.p1.guessed);
+
+        const updates = {};
+        updates[`players/${playerKey}/guessed`] = true;
+        updates[`players/${playerKey}/lat`] = guessLatLng[0];
+        updates[`players/${playerKey}/lng`] = guessLatLng[1];
+
+        // Trigger 15s timer if first
+        if (isFirst) {
+          updates['timerEnd'] = Date.now() + 15000;
+        }
+
+        update(ref(db, `rooms/${roomId}`), updates);
+      });
+    }
+
+    function forceSubmitGuess() {
+      // Auto guess 0,0 or map center if time runs out
+      submitGuess([500, 500]);
+    }
+
+    // --- RESULT LOGIC (DAMAGE CALC) ---
+    function showRoundResult(data) {
+      // Stop Timer
+      el.timer.classList.add('hidden');
+      el.waitingOverlay.classList.add('hidden');
+
+      // Only process calculations once (Host side) but update local UI for everyone
+      const p1 = data.players.p1;
+      const p2 = data.players.p2;
+      const game = data.game;
+      const mapKey = game.map;
+      const locIndex = game.locations[game.round];
+      const correct = maps[mapKey].locations[locIndex].latlng;
+
+      // Draw Markers
+      if (!answerMarker) {
+        // Correct Location
+        answerMarker = L.marker(correct, { icon: L.divIcon({ className: '', html: '<div style="font-size:24px">🏁</div>' }) }).addTo(map);
+
+        // Opponent
         const oppKey = playerKey === 'p1' ? 'p2' : 'p1';
         const oppData = data.players[oppKey];
         const oppLatLng = [oppData.lat, oppData.lng];
 
-        L.marker(oppLatLng, { icon: L.divIcon({ className: 'bg-transparent', html: '🔴' }) }).addTo(map);
-        L.polyline([oppLatLng, correct], { color: 'red', dashArray: '5, 5' }).addTo(map);
+        oppMarker = L.marker(oppLatLng, { icon: L.divIcon({ className: '', html: '<div style="font-size:24px; opacity:0.7">🔴</div>' }) }).addTo(map);
+        oppLine = L.polyline([oppLatLng, correct], { color: 'red', dashArray: '5,5' }).addTo(map);
 
-        answerMarker = L.marker(correct).addTo(map).bindPopup("Lokasi Asli").openPopup();
+        // Me
+        line = L.polyline([myGuess, correct], { color: 'deepskyblue' }).addTo(map);
 
-        if (isHost) {
-          document.getElementById('mpNextBtn').classList.remove('hidden');
-          document.getElementById('mpNextBtn').classList.add('active');
-        } else {
-          document.getElementById('mpWaitingMsg').innerText = "Menunggu Host lanjut...";
-          document.getElementById('mpWaitingMsg').classList.remove('hidden');
-        }
-        document.getElementById('waitingForOpponentOverlay').classList.add('hidden');
+        // Zoom to fit
+        map.fitBounds(L.latLngBounds([myGuess, oppLatLng, correct]).pad(0.2));
+        el.mapContainer.classList.add('active'); // Keep map big
       }
+
+      // Calculate Scores (Local calculation for display)
+      const myDist = map.distance(myGuess, correct);
+      const myScore = Math.max(0, 5000 - Math.floor(myDist * 5));
+
+      const oppKey = playerKey === 'p1' ? 'p2' : 'p1';
+      const oppData = data.players[oppKey];
+      const oppDist = Math.sqrt(Math.pow(oppData.lat - correct[0], 2) + Math.pow(oppData.lng - correct[1], 2));
+      const oppScore = Math.max(0, 5000 - Math.floor(oppDist * 5));
+
+      // Damage Calculation
+      const diff = Math.abs(myScore - oppScore);
+      let damageMsg = "";
+
+      if (myScore > oppScore) {
+        damageMsg = `You dealt ${diff} DMG!`;
+        document.getElementById('resDamage').className = "text-3xl sm:text-4xl font-black text-emerald-400";
+      } else if (myScore < oppScore) {
+        damageMsg = `You took ${diff} DMG!`;
+        document.getElementById('resDamage').className = "text-3xl sm:text-4xl font-black text-red-500 shake-anim";
+        el.game.classList.add('shake-anim'); // Screen shake
+        setTimeout(() => el.game.classList.remove('shake-anim'), 500);
+      } else {
+        damageMsg = "DRAW - No Damage";
+        document.getElementById('resDamage').className = "text-3xl text-gray-300";
+      }
+
+      // UI Text
+      document.getElementById('resDistance').innerText = Math.floor(myDist) + " m";
+      document.getElementById('resDamage').innerText = damageMsg;
+
+      // Host Logic: Apply Damage to DB & Enable Next Round
+      if (isHost && !document.getElementById('btnNextRound').classList.contains('active')) {
+        // Calculate new HP
+        let newP1Hp = p1.hp;
+        let newP2Hp = p2.hp;
+
+        // P1 Score vs P2 Score (Calculate properly)
+        const p1DistCalc = Math.sqrt(Math.pow(p1.lat - correct[0], 2) + Math.pow(p1.lng - correct[1], 2));
+        const p1ScoreCalc = Math.max(0, 5000 - Math.floor(p1DistCalc * 5));
+
+        const p2DistCalc = Math.sqrt(Math.pow(p2.lat - correct[0], 2) + Math.pow(p2.lng - correct[1], 2));
+        const p2ScoreCalc = Math.max(0, 5000 - Math.floor(p2DistCalc * 5));
+
+        if (p1ScoreCalc > p2ScoreCalc) {
+          newP2Hp -= (p1ScoreCalc - p2ScoreCalc);
+        } else {
+          newP1Hp -= (p2ScoreCalc - p1ScoreCalc);
+        }
+
+        // Update DB with delay to let animation play
+        setTimeout(() => {
+          update(ref(db, `rooms/${roomId}/players/p1`), { hp: newP1Hp });
+          update(ref(db, `rooms/${roomId}/players/p2`), { hp: newP2Hp });
+
+          // Check Game Over
+          if (newP1Hp <= 0 || newP2Hp <= 0) {
+            // Game Over Logic
+            const winner = newP1Hp > newP2Hp ? p1.name : p2.name;
+            document.getElementById('winnerName').innerText = winner + " WINS!";
+            document.getElementById('gameOverOverlay').classList.remove('hidden');
+          } else {
+            // Show Next Round Button
+            document.getElementById('btnNextRound').classList.remove('hidden');
+            document.getElementById('btnNextRound').classList.add('active');
+          }
+        }, 1000);
+      } else if (!isHost) {
+        document.getElementById('hostWaitingMsg').classList.remove('hidden');
+      }
+
+      el.resultOverlay.classList.remove('hidden');
     }
 
-    document.getElementById('mpSubmitBtn').onclick = () => {
-      if (!myGuess) return;
-      hasLocked = true;
-      document.getElementById('mpSubmitBtn').classList.add('hidden');
-      document.getElementById('mpWaitingMsg').classList.remove('hidden');
+    document.getElementById('btnNextRound').onclick = () => {
+      document.getElementById('btnNextRound').classList.remove('active');
+      document.getElementById('btnNextRound').classList.add('hidden');
 
-      get(ref(db, `rooms/${roomId}/game`)).then((snap) => {
-        const game = snap.val();
-        const locIndex = game.locations[game.round];
-        const correct = maps[game.map].locations[locIndex].latlng;
-        const dist = map.distance(myGuess, correct);
-        const scoreAdd = Math.max(0, 5000 - Math.floor(dist * 5));
-
-        L.polyline([myGuess, correct], { color: 'deepskyblue' }).addTo(map);
-
-        get(ref(db, `rooms/${roomId}/players/${playerKey}/score`)).then(sSnap => {
-          const currentScore = sSnap.val() || 0;
-          const updates = {};
-          updates[`players/${playerKey}/guessed`] = true;
-          updates[`players/${playerKey}/lat`] = myGuess[0];
-          updates[`players/${playerKey}/lng`] = myGuess[1];
-          updates[`players/${playerKey}/score`] = currentScore + scoreAdd;
-          update(ref(db, `rooms/${roomId}`), updates);
-        });
-      });
-      document.getElementById('waitingForOpponentOverlay').classList.remove('hidden');
-    };
-
-    document.getElementById('mpNextBtn').onclick = () => {
-      document.getElementById('mpNextBtn').classList.remove('active');
       get(ref(db, `rooms/${roomId}/game`)).then((snap) => {
         const game = snap.val();
         const nextRound = game.round + 1;
-        const totalRounds = maps[game.map].locations.length;
-        if (nextRound >= totalRounds) {
-          alert("Game Selesai! Score akhir ada di papan.");
-        } else {
-          const updates = {
-            "game/round": nextRound,
-            "players/p1/guessed": false,
-            "players/p2/guessed": false
-          };
-          update(ref(db, `rooms/${roomId}`), updates);
-        }
+
+        // Reset flags
+        update(ref(db, `rooms/${roomId}`), {
+          "game/round": nextRound,
+          "timerEnd": 0,
+          "players/p1/guessed": false,
+          "players/p2/guessed": false
+        });
       });
     };
   </script>
